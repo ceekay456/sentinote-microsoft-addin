@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>ResearchCloud - Authenticating...</title>
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+</head>
+<body>
+    <p>Authenticating...</p>
+    <script>
+        // This page is loaded in the Office Dialog after Cognito redirects back.
+        // It extracts the authorization code, exchanges it for tokens, and sends them
+        // back to the parent taskpane via Office.context.ui.messageParent().
+
+        Office.onReady(function () {
+            var urlParams = new URLSearchParams(window.location.search);
+            var code = urlParams.get("code");
+            var error = urlParams.get("error");
+
+            if (error) {
+                Office.context.ui.messageParent(JSON.stringify({
+                    status: "error",
+                    error: error,
+                    errorDescription: urlParams.get("error_description") || "Authentication failed"
+                }));
+                return;
+            }
+
+            if (!code) {
+                Office.context.ui.messageParent(JSON.stringify({
+                    status: "error",
+                    error: "no_code",
+                    errorDescription: "No authorization code received"
+                }));
+                return;
+            }
+
+            // Exchange the authorization code for tokens
+            var cognitoDomain = document.querySelector('meta[name="cognito-domain"]');
+            var clientId = document.querySelector('meta[name="client-id"]');
+            var redirectUri = window.location.origin + "/callback.html";
+
+            // Read config from the URL hash (passed by the parent)
+            var hashParams = new URLSearchParams(window.location.hash.substring(1));
+            var tokenDomain = hashParams.get("domain") || "";
+            var tokenClientId = hashParams.get("clientId") || "";
+
+            if (!tokenDomain || !tokenClientId) {
+                // Fallback: try to read from localStorage (set before dialog was opened)
+                try {
+                    var config = JSON.parse(localStorage.getItem("rc_auth_config") || "{}");
+                    tokenDomain = config.domain || "";
+                    tokenClientId = config.clientId || "";
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            if (!tokenDomain || !tokenClientId) {
+                Office.context.ui.messageParent(JSON.stringify({
+                    status: "error",
+                    error: "missing_config",
+                    errorDescription: "Missing Cognito configuration"
+                }));
+                return;
+            }
+
+            var tokenUrl = "https://" + tokenDomain + "/oauth2/token";
+            var body = new URLSearchParams({
+                grant_type: "authorization_code",
+                client_id: tokenClientId,
+                code: code,
+                redirect_uri: redirectUri
+            });
+
+            fetch(tokenUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: body.toString()
+            })
+            .then(function (response) {
+                if (!response.ok) throw new Error("Token exchange failed: " + response.status);
+                return response.json();
+            })
+            .then(function (tokens) {
+                Office.context.ui.messageParent(JSON.stringify({
+                    status: "success",
+                    idToken: tokens.id_token,
+                    accessToken: tokens.access_token,
+                    refreshToken: tokens.refresh_token,
+                    expiresIn: tokens.expires_in
+                }));
+            })
+            .catch(function (err) {
+                Office.context.ui.messageParent(JSON.stringify({
+                    status: "error",
+                    error: "token_exchange_failed",
+                    errorDescription: err.message || "Failed to exchange authorization code"
+                }));
+            });
+        });
+    </script>
+</body>
+</html>
