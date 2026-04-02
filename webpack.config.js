@@ -66,6 +66,12 @@ module.exports = async (env, options) => {
         inject: false,
       }),
       new HtmlWebpackPlugin({
+        filename: "ms-callback.html",
+        template: "./src/taskpane/ms-callback.html",
+        chunks: [],
+        inject: false,
+      }),
+      new HtmlWebpackPlugin({
         filename: "commands.html",
         template: "./src/commands/commands.html",
         chunks: ["commands"],

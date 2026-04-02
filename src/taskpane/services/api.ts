@@ -1,41 +1,24 @@
 import { environment } from "./environment";
-import { getIdToken, signOut } from "./auth";
+import { getIdToken } from "./auth";
 
-interface ApiOptions {
-  method?: string;
-  params?: Record<string, string>;
-  body?: unknown;
-}
-
-export class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}
-
-export async function apiCall<T>(path: string, options: ApiOptions = {}): Promise<T> {
+/**
+ * Make an authenticated API call (uses the Cognito ID token from the session).
+ */
+async function apiCall<T>(path: string, options: { method?: string; params?: Record<string, string>; body?: unknown } = {}): Promise<T> {
   const { method = "GET", params, body } = options;
-
   const token = getIdToken();
-  if (!token) {
-    signOut();
-    throw new ApiError(401, "Not authenticated");
-  }
 
   let url = `${environment.apiUrl}${path}`;
   if (params) {
-    const searchParams = new URLSearchParams(params);
-    url += `?${searchParams.toString()}`;
+    url += `?${new URLSearchParams(params).toString()}`;
   }
 
   const headers: Record<string, string> = {
-    Authorization: token,
     "Content-Type": "application/json",
   };
+  if (token) {
+    headers.Authorization = token;
+  }
 
   const response = await fetch(url, {
     method,
@@ -43,74 +26,55 @@ export async function apiCall<T>(path: string, options: ApiOptions = {}): Promis
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  if (response.status === 401) {
-    signOut();
-    throw new ApiError(401, "Session expired");
-  }
-
   if (!response.ok) {
     const errorBody = await response.text();
-    throw new ApiError(response.status, errorBody || response.statusText);
+    throw new Error(errorBody || response.statusText);
   }
 
   return response.json();
 }
 
-// API types matching the backend responses
+// Session bootstrap (unauthenticated)
 
-export interface StudySummary {
+export interface AddinSession {
+  checkoutId: string;
+  fileKey: string;
+  fileName: string;
   studyId: string;
-  name: string;
-  protocolNumber: string;
-  status: string;
-  templateId: string;
-  createdAt: string;
-  createdBy: string;
-}
-
-export interface FileItem {
-  key: string;
-  name: string;
-  size?: number;
-  lastModified?: string;
-  type: "file" | "folder";
-  metadataType?: string;
-}
-
-export interface FilesResponse {
-  files: FileItem[];
-  folders: FileItem[];
-  prefix: string;
-  source: string;
-  hasMore: boolean;
-  nextContinuationToken?: string;
-}
-
-export interface PermissionsResponse {
-  userId: string;
-  email: string;
   tenantId: string;
-  orgRole: string;
-  studies: Array<{
-    studyId: string;
-    role: string;
-    permissions: Record<string, boolean>;
-  }>;
+  filePath: string;
+  checkedOutByEmail: string;
+  checkedOutAt: string;
+  oneDrivePath: string;
+  cognitoIdToken: string;
+  msGraphToken: string | null;
 }
 
-// API methods
-
-export async function fetchStudies(): Promise<StudySummary[]> {
-  const result = await apiCall<{ studies: StudySummary[] }>("/studies");
-  return result.studies;
-}
-
-export async function fetchFiles(prefix: string, source = "storage"): Promise<FilesResponse> {
-  return apiCall<FilesResponse>("/files", {
-    params: { prefix, source, maxKeys: "200" },
+export async function getAddinSession(checkoutId: string): Promise<AddinSession> {
+  return apiCall<AddinSession>("/files/checkout/addin-session", {
+    params: { checkoutId },
   });
 }
 
-export async function fetchPermissions(): Promise<PermissionsResponse> {
-  return apiCall<PermissionsResponse>("/permissions/me");
+// Check-in (authenticated — uses token from session)
+
+export async function requestCheckin(key: string): Promise<{ uploadUrl: string; oneDrivePath: string }> {
+  return apiCall<{ uploadUrl: string; oneDrivePath: string }>("/files/checkin", {
+    method: "POST",
+    body: { key },
+  });
+}
+
+export async function completeCheckin(key: string, versionId?: string): Promise<void> {
+  await apiCall<{ message: string }>("/files/checkin/complete", {
+    method: "POST",
+    body: { key, versionId },
+  });
+}
+
+export async function cancelCheckout(key: string): Promise<void> {
+  await apiCall<{ message: string }>("/files/checkout/cancel", {
+    method: "POST",
+    body: { key },
+  });
 }

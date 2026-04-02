@@ -15,6 +15,7 @@
     <AppDomain>https://sentinote-612559614330.auth.eu-central-1.amazoncognito.com</AppDomain>
     <AppDomain>https://researchcloud-931097097198.auth.eu-central-1.amazoncognito.com</AppDomain>
     <AppDomain>https://cognito-idp.eu-central-1.amazonaws.com</AppDomain>
+    <AppDomain>https://login.microsoftonline.com</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Document"/>
@@ -85,5 +86,14 @@
         <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Open ResearchCloud document browser"/>
       </bt:LongStrings>
     </Resources>
+    <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_1">
+      <WebApplicationInfo>
+        <Id>5bc3d59a-71d4-4780-9f0e-31520a6797a6</Id>
+        <Resource>api://localhost:3000/5bc3d59a-71d4-4780-9f0e-31520a6797a6</Resource>
+        <Scopes>
+          <Scope>Files.ReadWrite</Scope>
+        </Scopes>
+      </WebApplicationInfo>
+    </VersionOverrides>
   </VersionOverrides>
 </OfficeApp>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>ResearchCloud - Microsoft Sign In</title>
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+</head>
+<body>
+    <p>Signing in to Microsoft...</p>
+    <script>
+        Office.onReady(function () {
+            var urlParams = new URLSearchParams(window.location.search);
+            var code = urlParams.get("code");
+            var error = urlParams.get("error");
+            var state = urlParams.get("state");
+
+            if (error) {
+                Office.context.ui.messageParent(JSON.stringify({
+                    type: "ms-auth",
+                    status: "error",
+                    error: error,
+                    errorDescription: urlParams.get("error_description") || "Microsoft authentication failed"
+                }));
+                return;
+            }
+
+            if (!code) {
+                Office.context.ui.messageParent(JSON.stringify({
+                    type: "ms-auth",
+                    status: "error",
+                    error: "no_code",
+                    errorDescription: "No authorization code received"
+                }));
+                return;
+            }
+
+            // Read config from the OAuth state parameter (base64-encoded JSON)
+            var config;
+            try {
+                config = JSON.parse(atob(state));
+            } catch (e) {
+                config = {};
+            }
+
+            if (!config.clientId || !config.tenantId || !config.codeVerifier) {
+                Office.context.ui.messageParent(JSON.stringify({
+                    type: "ms-auth",
+                    status: "error",
+                    error: "missing_config",
+                    errorDescription: "Missing Microsoft auth configuration"
+                }));
+                return;
+            }
+
+            // Exchange authorization code for tokens using PKCE
+            var tokenUrl = "https://login.microsoftonline.com/" + config.tenantId + "/oauth2/v2.0/token";
+            var body = new URLSearchParams({
+                grant_type: "authorization_code",
+                client_id: config.clientId,
+                code: code,
+                redirect_uri: window.location.origin + "/ms-callback.html",
+                scope: "https://graph.microsoft.com/Files.ReadWrite",
+                code_verifier: config.codeVerifier
+            });
+
+            fetch(tokenUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: body.toString()
+            })
+            .then(function (response) {
+                if (!response.ok) {
+                    return response.json().then(function (err) {
+                        throw new Error(err.error_description || "Token exchange failed");
+                    });
+                }
+                return response.json();
+            })
+            .then(function (tokens) {
+                Office.context.ui.messageParent(JSON.stringify({
+                    type: "ms-auth",
+                    status: "success",
+                    accessToken: tokens.access_token,
+                    expiresIn: tokens.expires_in
+                }));
+            })
+            .catch(function (err) {
+                Office.context.ui.messageParent(JSON.stringify({
+                    type: "ms-auth",
+                    status: "error",
+                    error: "token_exchange_failed",
+                    errorDescription: err.message || "Failed to get Microsoft tokens"
+                }));
+            });
+        });
+    </script>
+</body>
+</html>
