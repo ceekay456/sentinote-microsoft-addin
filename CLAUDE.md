@@ -10,7 +10,7 @@ Microsoft Word Online Add-in for ResearchCloud. See workspace `CLAUDE.md` for ar
 - **Language**: TypeScript 5.x
 - **Build**: Webpack 5 + Babel (with React preset)
 - **Office API**: `@types/office-js` + Office.js CDN script
-- **Auth**: Cognito Hosted UI via Office Dialog API (OAuth authorization code flow)
+- **Auth**: Backend SSO via checkout session token (no separate login required)
 
 ## Architecture Decision: React over Angular
 
@@ -26,17 +26,19 @@ The main ResearchCloud frontend uses Angular, but this add-in uses React. This w
 src/
 ├── taskpane/
 │   ├── index.tsx                  # Entry point (Office.onReady + FluentProvider)
-│   ├── App.tsx                    # Root component (auth routing)
+│   ├── App.tsx                    # Root component (auto-detects document state)
 │   ├── taskpane.html              # HTML shell (loads office.js)
-│   ├── callback.html              # OAuth callback page for Office Dialog API
+│   ├── ms-callback.html           # OAuth callback for Microsoft Graph (Office Dialog API)
 │   ├── components/
-│   │   ├── Login.tsx              # Sign-in screen
-│   │   ├── StudyBrowser.tsx       # Study list
-│   │   └── FileBrowser.tsx        # File/folder browser with breadcrumbs
+│   │   ├── CheckInView.tsx        # Check-in UI (Save to ResearchCloud / Cancel)
+│   │   ├── ReadOnlyView.tsx       # View-only message for preview documents
+│   │   └── NotResearchCloud.tsx   # Message for non-ResearchCloud documents
 │   └── services/
-│       ├── auth.ts                # Cognito auth via Office Dialog API
-│       ├── api.ts                 # HTTP client with auth headers
-│       └── environment.ts         # Environment config (Cognito + API URLs)
+│       ├── auth.ts                # Token storage (set/get ID token from backend session)
+│       ├── api.ts                 # HTTP client + addin-session, checkin, cancel endpoints
+│       ├── microsoft-auth.ts      # Microsoft Graph OAuth via Office Dialog API (PKCE)
+│       ├── onedrive.ts            # OneDrive upload/download/delete via Graph API
+│       └── environment.ts         # Environment config (API URLs)
 ├── commands/
 │   ├── commands.ts                # Ribbon command handlers
 │   └── commands.html              # Commands HTML shell
@@ -56,17 +58,30 @@ npm start             # Start with Office debugging (sideload)
 npm run watch         # Watch mode
 ```
 
-## Authentication Flow
+## Add-in States
 
-1. User clicks "Sign In" in taskpane
-2. `Office.context.ui.displayDialogAsync()` opens Cognito Hosted UI in a popup
-3. User authenticates on the Cognito hosted page
-4. Cognito redirects to `callback.html` with an authorization code
-5. `callback.html` exchanges the code for tokens via Cognito `/oauth2/token`
-6. Tokens are sent to the parent taskpane via `Office.context.ui.messageParent()`
-7. Taskpane stores tokens in memory, uses ID token for API calls
+The add-in auto-detects the document type on load (no login required):
 
-The ID token is sent in the `Authorization` header without a "Bearer" prefix, matching the existing frontend convention.
+| State | Detection | UI |
+|-------|-----------|-----|
+| **Check-in** | OneDrive path contains `{checkoutId}_{filename}` pattern | File details + "Save to ResearchCloud" / "Cancel and Release" buttons |
+| **Read-only preview** | OneDrive path contains `.preview/` | "View-only mode" message |
+| **Not ResearchCloud** | No matching pattern found | "Not checked out from ResearchCloud" message |
+
+## Authentication Flow (Backend SSO)
+
+No separate login is required. The add-in bootstraps its session from the backend:
+
+1. Angular frontend checks out a file → backend stores Cognito ID token + MS Graph token in DynamoDB checkout record
+2. Add-in loads in Word Online → reads document URL from `Office.context.document`
+3. Extracts `checkoutId` from the OneDrive filename (pattern: `{checkoutId}_{filename}`)
+4. Calls unauthenticated `GET /files/checkout/addin-session?checkoutId=...`
+5. Backend returns: file details, Cognito ID token, MS Graph token
+6. Add-in uses returned Cognito token for authenticated API calls (check-in, cancel)
+
+For check-in, the add-in reads the document content directly via `Office.context.document.getFileAsync(Office.FileType.Compressed)` — this captures all edits from the Word Online session, bypassing OneDrive caching.
+
+The MS Graph token (from the session) is used for OneDrive cleanup. If expired, the add-in falls back to interactive auth via Office Dialog API with PKCE.
 
 ## Environment Configuration
 
@@ -100,7 +115,7 @@ Defined in `src/taskpane/services/environment.ts`:
 
 ## Related Infrastructure
 
-Changes to `sentinote-infra/bin/sentinote-infra.ts` are needed for:
-- `allowedOrigins`: Add-in dev server and production URLs for CORS
-- `callbackUrls`: Cognito OAuth callback URL for the add-in
-- `logoutUrls`: Cognito logout redirect URL
+- **API Gateway**: `/files/checkout/addin-session` route has **no Cognito authorizer** (unauthenticated — security relies on unguessable checkoutId + 24h TTL)
+- **DynamoDB**: Checkout records in Studies table (`CHECKOUT#` and `ADDIN_SESSION#` SK patterns)
+- **CORS**: `allowedOrigins` in `sentinote-infra/bin/sentinote-infra.ts` must include the add-in URL
+- **Production deployment**: See `docs/microsoft-addin-production-deployment.md` for multi-tenant Azure AD setup, add-in hosting, and security analysis

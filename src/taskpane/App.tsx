@@ -4,6 +4,7 @@ import { setIdToken } from "./services/auth";
 import { getAddinSession, AddinSession } from "./services/api";
 import { CheckInView } from "./components/CheckInView";
 import { NotResearchCloud } from "./components/NotResearchCloud";
+import { ReadOnlyView } from "./components/ReadOnlyView";
 
 /* global Office */
 
@@ -24,6 +25,19 @@ const useStyles = makeStyles({
     gap: "12px",
   },
 });
+
+/**
+ * Check if the document is a ResearchCloud preview (read-only, no checkout).
+ * Preview files are uploaded to ResearchCloud/.preview/{uuid}_{filename}
+ */
+function isPreviewDocument(source: string): boolean {
+  try {
+    const decoded = decodeURIComponent(source);
+    return decoded.includes('.preview/') || decoded.includes('.preview%2F');
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Extract the checkout ID from the OneDrive document URL or filename.
@@ -50,7 +64,7 @@ function extractCheckoutId(documentUrl: string): string | null {
 
 export function App() {
   const styles = useStyles();
-  const [state, setState] = useState<"loading" | "checkin" | "not-found">("loading");
+  const [state, setState] = useState<"loading" | "checkin" | "preview" | "not-found">("loading");
   const [session, setSession] = useState<AddinSession | null>(null);
 
   useEffect(() => {
@@ -84,6 +98,14 @@ export function App() {
 
       // Browser location
       try { sources.push(window.location.href); } catch { /* ignore */ }
+
+      // Check if this is a preview (read-only) document
+      for (const source of sources) {
+        if (source && isPreviewDocument(source)) {
+          setState("preview");
+          return;
+        }
+      }
 
       // Try to extract checkout ID from any source
       let checkoutId: string | null = null;
@@ -132,6 +154,8 @@ export function App() {
           onComplete={() => setState("not-found")}
         />
       )}
+
+      {state === "preview" && <ReadOnlyView />}
 
       {state === "not-found" && <NotResearchCloud />}
     </div>
