@@ -1,10 +1,12 @@
 /* global Office */
 
+import { environment } from "./environment";
+
 // Azure AD app registration details
-const MS_CLIENT_ID = "5bc3d59a-71d4-4780-9f0e-31520a6797a6";
-const MS_TENANT_ID = "fedcef2f-0c85-40dd-8f55-e23143dcb367";
-const MS_REDIRECT_URI = "https://localhost:3000/ms-callback.html";
-const MS_SCOPE = "https://graph.microsoft.com/Files.ReadWrite";
+const MS_CLIENT_ID = environment.microsoft.clientId;
+const MS_TENANT_ID = environment.microsoft.tenantId;
+const MS_REDIRECT_URI = environment.microsoft.redirectUri;
+const MS_SCOPE = environment.microsoft.scope;
 
 // Cache the token in memory
 let cachedToken: string | null = null;

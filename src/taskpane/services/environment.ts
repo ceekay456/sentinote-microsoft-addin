@@ -7,6 +7,12 @@ export interface Environment {
     logoutUri: string;
   };
   apiUrl: string;
+  microsoft: {
+    clientId: string;
+    tenantId: string;
+    redirectUri: string;
+    scope: string;
+  };
 }
 
 const environments: Record<string, Environment> = {
@@ -19,6 +25,12 @@ const environments: Record<string, Environment> = {
       logoutUri: "https://localhost:3000",
     },
     apiUrl: "https://86rcreh9mh.execute-api.eu-central-1.amazonaws.com/prod",
+    microsoft: {
+      clientId: "5bc3d59a-71d4-4780-9f0e-31520a6797a6",
+      tenantId: "fedcef2f-0c85-40dd-8f55-e23143dcb367",
+      redirectUri: "https://localhost:3000/ms-callback.html",
+      scope: "https://graph.microsoft.com/Files.ReadWrite",
+    },
   },
   freshminds: {
     cognito: {
@@ -29,10 +41,16 @@ const environments: Record<string, Environment> = {
       logoutUri: "https://localhost:3000",
     },
     apiUrl: "https://vydindm26e.execute-api.eu-central-1.amazonaws.com/prod",
+    microsoft: {
+      clientId: "5bc3d59a-71d4-4780-9f0e-31520a6797a6",
+      tenantId: "fedcef2f-0c85-40dd-8f55-e23143dcb367",
+      redirectUri: "https://researchcloud.app/msoffice-addin/ms-callback.html",
+      scope: "https://graph.microsoft.com/Files.ReadWrite",
+    },
   },
 };
 
-// Default to development; override via webpack DefinePlugin or manual switch
-const envName = (typeof process !== "undefined" && process.env?.ADDIN_ENV) || "development";
+// Replaced at build time by webpack.DefinePlugin (see webpack.config.js)
+const envName = process.env.ADDIN_ENV || "development";
 
 export const environment: Environment = environments[envName] || environments.development;
