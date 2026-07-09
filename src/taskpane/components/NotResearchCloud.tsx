@@ -26,12 +26,12 @@ export function NotResearchCloud() {
   return (
     <div className={styles.container}>
       <Info24Regular />
-      <Title3>ResearchCloud</Title3>
+      <Title3>VerityOne</Title3>
       <Body1>
-        This document is not checked out from ResearchCloud.
+        This document is not checked out from VerityOne.
       </Body1>
       <Body2>
-        Open a document from the ResearchCloud web app to use this add-in.
+        Open a document from the VerityOne web app to use this add-in.
       </Body2>
     </div>
   );

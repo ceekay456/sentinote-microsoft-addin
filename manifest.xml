@@ -4,8 +4,8 @@
   <Version>1.0.0.0</Version>
   <ProviderName>FreshMinds</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="ResearchCloud"/>
-  <Description DefaultValue="Check out and edit documents from ResearchCloud directly in Word."/>
+  <DisplayName DefaultValue="VerityOne"/>
+  <Description DefaultValue="Check out and edit documents from VerityOne directly in Word."/>
   <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-64.png"/>
   <SupportUrl DefaultValue="https://researchcloud.app"/>
@@ -77,13 +77,13 @@
         <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3000/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
-        <bt:String id="GetStarted.Title" DefaultValue="ResearchCloud for Word"/>
-        <bt:String id="CommandsGroup.Label" DefaultValue="ResearchCloud"/>
-        <bt:String id="TaskpaneButton.Label" DefaultValue="ResearchCloud"/>
+        <bt:String id="GetStarted.Title" DefaultValue="VerityOne for Word"/>
+        <bt:String id="CommandsGroup.Label" DefaultValue="VerityOne"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="VerityOne"/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="GetStarted.Description" DefaultValue="ResearchCloud add-in loaded. Click the ResearchCloud button on the Home tab to browse and check out documents."/>
-        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Open ResearchCloud document browser"/>
+        <bt:String id="GetStarted.Description" DefaultValue="VerityOne add-in loaded. Click the VerityOne button on the Home tab to browse and check out documents."/>
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Open VerityOne document browser"/>
       </bt:LongStrings>
     </Resources>
     <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_1">

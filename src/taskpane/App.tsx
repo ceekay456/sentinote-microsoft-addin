@@ -27,8 +27,8 @@ const useStyles = makeStyles({
 });
 
 /**
- * Check if the document is a ResearchCloud preview (read-only, no checkout).
- * Preview files are uploaded to ResearchCloud/.preview/{uuid}_{filename}
+ * Check if the document is a VerityOne preview (read-only, no checkout).
+ * Preview files are uploaded to VerityOne/.preview/{uuid}_{filename}
  */
 function isPreviewDocument(source: string): boolean {
   try {
@@ -41,7 +41,7 @@ function isPreviewDocument(source: string): boolean {
 
 /**
  * Extract the checkout ID from the OneDrive document URL or filename.
- * Our convention: OneDrive path is ResearchCloud/{studyId}/{checkoutId}_{filename}
+ * Our convention: OneDrive path is VerityOne/{studyId}/{checkoutId}_{filename}
  * The document title in Word Online is "{checkoutId}_{filename}"
  */
 function extractCheckoutId(documentUrl: string): string | null {

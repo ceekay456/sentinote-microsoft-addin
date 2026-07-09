@@ -190,7 +190,7 @@ export function CheckInView({
         await deleteFromOneDrive(msToken, oneDrivePath);
       } catch { /* ok */ }
 
-      setSuccess("Document saved to ResearchCloud successfully.");
+      setSuccess("Document saved to VerityOne successfully.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Check-in failed");
     } finally {
@@ -226,7 +226,7 @@ export function CheckInView({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <Title3>ResearchCloud</Title3>
+        <Title3>VerityOne</Title3>
       </div>
 
       <div className={styles.content}>
@@ -264,7 +264,7 @@ export function CheckInView({
               disabled={busy}
               onClick={handleCheckin}
             >
-              Save to ResearchCloud
+              Save to VerityOne
             </Button>
             <Button
               appearance="secondary"

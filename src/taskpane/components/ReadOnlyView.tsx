@@ -26,12 +26,12 @@ export function ReadOnlyView() {
   return (
     <div className={styles.container}>
       <Eye24Regular />
-      <Title3>ResearchCloud</Title3>
+      <Title3>VerityOne</Title3>
       <Body1>
         This document is opened in view-only mode.
       </Body1>
       <Body2>
-        To edit and save changes, use "Edit in Word" from the ResearchCloud web app.
+        To edit and save changes, use "Edit in Word" from the VerityOne web app.
       </Body2>
     </div>
   );

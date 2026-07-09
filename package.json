@@ -1,7 +1,7 @@
 {
   "name": "sentinote-microsoft-addin",
   "version": "0.1.0",
-  "description": "Microsoft Word Online Add-in for ResearchCloud",
+  "description": "Microsoft Word Online Add-in for VerityOne",
   "repository": {
     "type": "git",
     "url": "https://github.com/ceekay456/sentinote-microsoft-addin.git"
