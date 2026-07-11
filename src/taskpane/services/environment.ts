@@ -48,6 +48,25 @@ const environments: Record<string, Environment> = {
       scope: "https://graph.microsoft.com/Files.ReadWrite",
     },
   },
+  verityone: {
+    cognito: {
+      userPoolId: "eu-central-1_SSuV9hX66",
+      clientId: "6topvobcsf532227fckj2n0emh",
+      domain: "verityone-931097097198.auth.eu-central-1.amazoncognito.com",
+      redirectUri: "https://localhost:3000/callback.html",
+      logoutUri: "https://localhost:3000",
+    },
+    apiUrl: "https://8eb3bu7fri.execute-api.eu-central-1.amazonaws.com/prod",
+    // VerityOne gets its own separate Azure AD app registration (not the
+    // shared FreshMinds one) — pending creation in the Azure Portal.
+    // Redirect URI to register: https://d2yq86j6lz79ng.cloudfront.net/msoffice-addin/ms-callback.html
+    microsoft: {
+      clientId: "PLACEHOLDER_MS_CLIENT_ID",
+      tenantId: "PLACEHOLDER_MS_TENANT_ID",
+      redirectUri: "https://d2yq86j6lz79ng.cloudfront.net/msoffice-addin/ms-callback.html",
+      scope: "https://graph.microsoft.com/Files.ReadWrite",
+    },
+  },
 };
 
 // Replaced at build time by webpack.DefinePlugin (see webpack.config.js)

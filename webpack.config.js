@@ -6,7 +6,20 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const urlDev = "https://localhost:3000/";
-const urlProd = "https://researchcloud.app/msoffice-addin/";
+
+// Each production target maps to its own manifest source file (kept as
+// separate manifest*.xml files rather than templating one file, since
+// AppDomains/WebApplicationInfo differ per Azure AD app registration).
+const targets = {
+  freshminds: {
+    urlProd: "https://researchcloud.app/msoffice-addin/",
+    manifestFile: "manifest.xml",
+  },
+  verityone: {
+    urlProd: "https://d2yq86j6lz79ng.cloudfront.net/msoffice-addin/",
+    manifestFile: "manifest.verityone.xml",
+  },
+};
 
 async function getHttpsOptions() {
   const httpsOptions = await devCerts.getHttpsServerOptions();
@@ -15,6 +28,8 @@ async function getHttpsOptions() {
 
 module.exports = async (env, options) => {
   const dev = options.mode === "development";
+  const target = targets[env.target] ? env.target : "freshminds";
+  const { urlProd, manifestFile } = targets[target];
   const config = {
     devtool: "source-map",
     entry: {
@@ -56,7 +71,7 @@ module.exports = async (env, options) => {
     },
     plugins: [
       new webpack.DefinePlugin({
-        "process.env.ADDIN_ENV": JSON.stringify(dev ? "development" : "freshminds"),
+        "process.env.ADDIN_ENV": JSON.stringify(dev ? "development" : target),
       }),
       new HtmlWebpackPlugin({
         filename: "taskpane.html",
@@ -87,8 +102,8 @@ module.exports = async (env, options) => {
             to: "assets/[name][ext][query]",
           },
           {
-            from: "manifest*.xml",
-            to: "[name][ext]",
+            from: dev ? "manifest.xml" : manifestFile,
+            to: "manifest.xml",
             transform(content) {
               if (dev) {
                 return content;

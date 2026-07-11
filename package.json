@@ -13,12 +13,14 @@
     "dev_server_port": 3000
   },
   "scripts": {
-    "build": "webpack --mode production",
+    "build": "webpack --mode production && node scripts/write-build-env.js researchcloud",
+    "build:verityone": "webpack --mode production --env target=verityone && node scripts/write-build-env.js verityone",
     "build:dev": "webpack --mode development",
     "dev-server": "webpack serve --mode development",
     "start": "office-addin-debugging start manifest.xml",
     "stop": "office-addin-debugging stop manifest.xml",
     "validate": "office-addin-manifest validate manifest.xml",
+    "validate:verityone": "office-addin-manifest validate manifest.verityone.xml",
     "watch": "webpack --mode development --watch"
   },
   "dependencies": {
