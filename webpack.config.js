@@ -30,6 +30,11 @@ module.exports = async (env, options) => {
   const dev = options.mode === "development";
   const target = targets[env.target] ? env.target : "freshminds";
   const { urlProd, manifestFile } = targets[target];
+  // In dev mode, ADDIN_ENV picks which backend (Cognito/API) the dev-server
+  // talks to — independent of `target`, which only drives the prod URL/manifest
+  // substitution above. Defaults to "development" (personal account) unless
+  // an explicit --env target is passed, e.g. `--env target=verityone`.
+  const addinEnv = dev ? env.target || "development" : target;
   const config = {
     devtool: "source-map",
     entry: {
@@ -71,7 +76,7 @@ module.exports = async (env, options) => {
     },
     plugins: [
       new webpack.DefinePlugin({
-        "process.env.ADDIN_ENV": JSON.stringify(dev ? "development" : target),
+        "process.env.ADDIN_ENV": JSON.stringify(addinEnv),
       }),
       new HtmlWebpackPlugin({
         filename: "taskpane.html",
