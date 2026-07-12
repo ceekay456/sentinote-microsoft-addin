@@ -14,7 +14,7 @@ export async function uploadToOneDrive(
 
   if (fileData.byteLength <= 4 * 1024 * 1024) {
     const response = await fetch(
-      `${GRAPH_BASE}/me/drive/root:/${encodedPath}:/content`,
+      `${GRAPH_BASE}/me/drive/special/approot:/${encodedPath}:/content`,
       {
         method: "PUT",
         headers: {
@@ -42,7 +42,7 @@ async function uploadLargeFile(
 ): Promise<{ webUrl: string }> {
   // Create upload session
   const sessionResponse = await fetch(
-    `${GRAPH_BASE}/me/drive/root:/${encodedPath}:/createUploadSession`,
+    `${GRAPH_BASE}/me/drive/special/approot:/${encodedPath}:/createUploadSession`,
     {
       method: "POST",
       headers: {
@@ -105,7 +105,7 @@ export async function downloadFromOneDrive(
   const encodedPath = encodeURIComponent(path).replace(/%2F/g, "/");
 
   const response = await fetch(
-    `${GRAPH_BASE}/me/drive/root:/${encodedPath}:/content`,
+    `${GRAPH_BASE}/me/drive/special/approot:/${encodedPath}:/content`,
     { headers: { Authorization: `Bearer ${graphToken}` } }
   );
 
@@ -127,7 +127,7 @@ export async function deleteFromOneDrive(
   const encodedPath = encodeURIComponent(path).replace(/%2F/g, "/");
 
   const response = await fetch(
-    `${GRAPH_BASE}/me/drive/root:/${encodedPath}`,
+    `${GRAPH_BASE}/me/drive/special/approot:/${encodedPath}`,
     {
       method: "DELETE",
       headers: { Authorization: `Bearer ${graphToken}` },

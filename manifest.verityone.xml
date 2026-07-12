@@ -86,10 +86,10 @@
     </Resources>
     <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_1">
       <WebApplicationInfo>
-        <Id>PLACEHOLDER_MS_CLIENT_ID</Id>
-        <Resource>api://d2yq86j6lz79ng.cloudfront.net/PLACEHOLDER_MS_CLIENT_ID</Resource>
+        <Id>e4326ba8-e9e8-44ae-85c9-f57633e50cb9</Id>
+        <Resource>api://d2yq86j6lz79ng.cloudfront.net/e4326ba8-e9e8-44ae-85c9-f57633e50cb9</Resource>
         <Scopes>
-          <Scope>Files.ReadWrite</Scope>
+          <Scope>Files.ReadWrite.AppFolder</Scope>
         </Scopes>
       </WebApplicationInfo>
     </VersionOverrides>
